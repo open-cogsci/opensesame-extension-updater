@@ -120,8 +120,25 @@ class Updater(BaseExtension):
         self._updates = []
         self._update_script = '# No updates available'
         super().__init__(main_window, info)
+        
+    def _conda_available(self):
+        cmd = ['conda', '--version']
+        try:
+            result = subprocess.run(cmd, capture_output=True)
+        except FileNotFoundError:
+            oslogger.warning('conda not available')
+            return False
+        if result.returncode == 0:
+            oslogger.debug(f'found {result.stdout}')
+            return True
+        return False
     
     def _start_update_process(self):
+        if not self._conda_available():
+            self.extension_manager.fire('notify',
+                message=_('Cannot check for updates because conda is not available'),
+                category='warning')
+            return
         pkgs = []
         for pkg in self.unloaded_extension_manager.sub_packages + \
                 self.plugin_manager.sub_packages:
