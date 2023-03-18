@@ -35,9 +35,6 @@ class UpdateWidget(BaseWidget):
         
     def set_script(self, script):
         self._editor.setPlainText(script)
-        # cursor = self._editor.textCursor()
-        # cursor.movePosition(cursor.Start)
-        # self._editor.setTextCursor(cursor)
         
     def _run_script(self):
         self.extension_manager.fire('jupyter_run_code',

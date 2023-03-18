@@ -54,7 +54,6 @@ def _pkg_info(pkg):
     result = subprocess.run(cmd, capture_output=True)
     info = json.loads(result.stdout)
     if len(info) != 1:
-        print(f'failed to parse {info}')
         return None, None
     return info[0], parse(info[0]['version'])
 
@@ -105,7 +104,7 @@ def _check_update(pkg):
 def _check_updates(queue, pkgs):
     """The main process function that checks for each package in pkgs whether
     it can be updated, and puts UpdateInfo objects into the queue.
-    """"
+    """
     available_updates = []
     for pkg in pkgs:
         info = _check_update(pkg)
@@ -151,7 +150,7 @@ class Updater(BaseExtension):
         oslogger.debug('checking update process')
         if self._queue.empty():
             try:
-                print('update process still running')
+                oslogger.debug('update process still running')
             except ValueError:
                 # Is raised when getting the pid of a closed process
                 return
@@ -176,7 +175,7 @@ class Updater(BaseExtension):
         conda_updates = [info for info in self._updates if not info.pypi]
         if conda_updates:
             script.append(
-                '# The following packages can be updated through conda:')
+                _('# The following packages can be updated through conda:'))
             for info in conda_updates:
                 script.append(
                     f'# - {info.pkg} from {info.current} to {info.latest}')
@@ -184,7 +183,7 @@ class Updater(BaseExtension):
             script.append(f'%conda update {pkgs} -y')
         if pypi_updates:
             script.append(
-                '# The following packages can be updated through pip:')
+                _('# The following packages can be updated through pip:'))
             for info in pypi_updates:
                 script.append(
                     f'# - {info.pkg} from {info.current} to {info.latest}')
