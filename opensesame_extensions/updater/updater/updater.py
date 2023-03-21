@@ -51,7 +51,7 @@ def _pkg_info(pkg):
         Package information with several keys, including version and platform
     """
     cmd = ['conda', 'list', pkg, '--full-name', '--json']
-    result = subprocess.run(cmd, capture_output=True)
+    result = subprocess.run(cmd, capture_output=True, shell=True)
     info = json.loads(result.stdout)
     if len(info) != 1:
         return None, None
@@ -61,7 +61,7 @@ def _pkg_info(pkg):
 def _check_conda(pkg):
     """Checks the latest version of a package on conda"""
     cmd = ['conda', 'search', pkg, '--info', '--json']
-    result = subprocess.run(cmd, capture_output=True)
+    result = subprocess.run(cmd, capture_output=True, shell=True)
     info = json.loads(result.stdout)
     version = parse('0')
     if pkg not in info:
@@ -124,7 +124,7 @@ class Updater(BaseExtension):
     def _conda_available(self):
         cmd = ['conda', '--version']
         try:
-            result = subprocess.run(cmd, capture_output=True)
+            result = subprocess.run(cmd, capture_output=True, shell=True)
         except FileNotFoundError:
             oslogger.warning('conda not available')
             return False
