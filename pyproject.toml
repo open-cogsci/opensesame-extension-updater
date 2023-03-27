@@ -15,6 +15,10 @@ repository = "https://github.com/open-cogsci/opensesame-extension-updater"
 python = ">= 3.7"
 opensesame-core = ">= 4.0.0a0"
 
+[tool.wheel2deb.dependencies]
+python = ">= 3.7"
+opensesame = ">= 3.99.99"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
