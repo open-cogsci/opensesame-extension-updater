@@ -11,4 +11,7 @@ toolbar = {
     "separator_before": True,
     "separator_after": False
 }
+settings = {
+    'updater_prereleases': True
+}
 priority = -1000

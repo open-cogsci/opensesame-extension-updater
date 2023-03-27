@@ -15,9 +15,8 @@ along with OpenSesame.  If not, see <http://www.gnu.org/licenses/>.
 """
 from libopensesame.py3compat import *
 from libopensesame.oslogging import oslogger
+from libqtopensesame.misc.config import cfg
 from libqtopensesame.extensions import BaseExtension
-from libqtopensesame.misc.translate import translation_context
-_ = translation_context('updater', category='extension')
 import opensesame_extensions
 from collections import namedtuple
 import opensesame_plugins
@@ -27,17 +26,43 @@ import subprocess
 import json
 import requests
 import json
+import sys
 from qtpy.QtCore import QTimer
 try:
     from packaging.version import parse
 except ImportError:
     from pip._vendor.packaging.version import parse
+from libqtopensesame.misc.translate import translation_context
+_ = translation_context('updater', category='extension')
 
 
 UpdateInfo = namedtuple('UpdateInfo', ['pkg', 'current', 'latest', 'pypi'])
+DELAY = 5000
 
 
-def _pkg_info(pkg):
+def _has_conda():
+    """Checks whether conda is available.
+
+    Returns
+    -------
+    bool
+    """
+    result = subprocess.run(['conda'], capture_output=True, shell=True)
+    return result.returncode == 0
+
+
+def _has_pip():
+    """Checks whether pip is available.
+
+    Returns
+    -------
+    bool
+    """
+    result = subprocess.run(['pip'], capture_output=True, shell=True)
+    return result.returncode == 0
+
+
+def _pkg_info_conda(pkg):
     """Retrieves package info through conda. This includes packages that were
     installed through pip.
     
@@ -47,20 +72,43 @@ def _pkg_info(pkg):
     
     Returns
     -------
-    dict
-        Package information with several keys, including version and platform
+    tuple
+        An info dict, version tuple
     """
-    cmd = ['conda', 'list', pkg, '--full-name', '--json']
+    cmd = [f'conda list {pkg} --full-name --json']
     result = subprocess.run(cmd, capture_output=True, shell=True)
     info = json.loads(result.stdout)
     if len(info) != 1:
         return None, None
     return info[0], parse(info[0]['version'])
+    
+
+def _pkg_info_pip(pkg):
+    """Retrieves package info through pip. This only includes user-installed
+    packages.
+
+    Parameters
+    ----------
+    pkg: str
+
+    Returns
+    -------
+    tuple
+        An info dict, version tuple
+    """
+    cmd = ['pip list --format=json --user']
+    result = subprocess.run(cmd, capture_output=True, shell=True)
+    pkg_list = json.loads(result.stdout)
+    for info in pkg_list:
+        if info['name'] == pkg:
+            info['platform'] = 'pypi'
+            return info, parse(info['version'])
+    return None, None
 
 
 def _check_conda(pkg):
     """Checks the latest version of a package on conda"""
-    cmd = ['conda', 'search', pkg, '--info', '--json']
+    cmd = [f'conda search {pkg} --info --json']
     result = subprocess.run(cmd, capture_output=True, shell=True)
     info = json.loads(result.stdout)
     version = parse('0')
@@ -73,7 +121,7 @@ def _check_conda(pkg):
     return version
 
 
-def _check_pypi(pkg):
+def _check_pypi(pkg, prereleases):
     """Checks the latest version of a package on pypi"""
     req = requests.get(f'https://pypi.python.org/pypi/{pkg}/json')
     version = parse('0')
@@ -82,32 +130,45 @@ def _check_pypi(pkg):
         releases = j.get('releases', [])
         for release in releases:
             ver = parse(release)
-            if not ver.is_prerelease:
-                version = max(version, ver)
+            if ver.is_prerelease and not prereleases:
+                continue
+            version = max(version, ver)
     return version
 
 
-def _check_update(pkg):
+def _check_update(pkg, pkg_info_fnc, prereleases):
     """Checks whether a package can be updated. Returns a UpdateInfo object
     if yes, and None otherwise.
     """
-    info, current = _pkg_info(pkg)
+    info, current = pkg_info_fnc(pkg)
+    print(pkg, info, current)
     if info is None:
         return
     pypi = info['platform'] == 'pypi'
-    latest = _check_pypi(pkg) if pypi else _check_conda(pkg)
+    latest = _check_pypi(pkg, prereleases) if pypi else _check_conda(pkg)
+    print(latest)
     if latest <= current:
         return
     return UpdateInfo(pkg, current, latest, pypi)
 
 
-def _check_updates(queue, pkgs):
+def _check_updates(queue, pkgs, prereleases):
     """The main process function that checks for each package in pkgs whether
     it can be updated, and puts UpdateInfo objects into the queue.
     """
+    if _has_conda():
+        pkg_info_fnc = _pkg_info_conda
+        print('using conda for updater')
+    elif _has_pip():
+        pkg_info_fnc = _pkg_info_pip
+        print('using pip for updater')
+    else:
+        print('neither conda nor pip are available for updater')
+        queue.put(None)
+        return
     available_updates = []
     for pkg in pkgs:
-        info = _check_update(pkg)
+        info = _check_update(pkg, pkg_info_fnc, prereleases)
         if info is not None:
             queue.put(info)
     queue.put(None)
@@ -120,25 +181,8 @@ class Updater(BaseExtension):
         self._updates = []
         self._update_script = '# No updates available'
         super().__init__(main_window, info)
-        
-    def _conda_available(self):
-        cmd = ['conda', '--version']
-        try:
-            result = subprocess.run(cmd, capture_output=True, shell=True)
-        except FileNotFoundError:
-            oslogger.warning('conda not available')
-            return False
-        if result.returncode == 0:
-            oslogger.debug(f'found {result.stdout}')
-            return True
-        return False
     
     def _start_update_process(self):
-        if not self._conda_available():
-            self.extension_manager.fire('notify',
-                message=_('Cannot check for updates because conda is not available'),
-                category='warning')
-            return
         pkgs = []
         for pkg in self.unloaded_extension_manager.sub_packages + \
                 self.plugin_manager.sub_packages:
@@ -154,14 +198,15 @@ class Updater(BaseExtension):
         oslogger.debug('update process started')
         self._queue = multiprocessing.Queue()
         self._update_process = multiprocessing.Process(
-            target=_check_updates, args=(self._queue, pkgs))
+            target=_check_updates, args=(self._queue, pkgs,
+                                         cfg.updater_prereleases))
         self._update_process.start()
         self.extension_manager.fire(
             'register_subprocess', 
             pid=self._update_process.pid,
             description='update_process')
         oslogger.debug('update process started')
-        QTimer.singleShot(5000, self._check_update_process)
+        QTimer.singleShot(DELAY, self._check_update_process)
         
     def _check_update_process(self):
         oslogger.debug('checking update process')
@@ -171,7 +216,7 @@ class Updater(BaseExtension):
             except ValueError:
                 # Is raised when getting the pid of a closed process
                 return
-            QTimer.singleShot(5000, self._check_update_process)
+            QTimer.singleShot(DELAY, self._check_update_process)
             return
         info = self._queue.get()
         if info is None:
@@ -187,6 +232,7 @@ class Updater(BaseExtension):
         if not self._updates:
             oslogger.debug('no updates available')
             return
+        prefix = '!'
         script = []
         pypi_updates = [info for info in self._updates if info.pypi]
         conda_updates = [info for info in self._updates if not info.pypi]
@@ -196,8 +242,8 @@ class Updater(BaseExtension):
             for info in conda_updates:
                 script.append(
                     f'# - {info.pkg} from {info.current} to {info.latest}')
-            pkgs = ' '.join([info.pkg for info in pypi_updates])
-            script.append(f'%conda update {pkgs} -y')
+            pkgs = ' '.join([info.pkg for info in conda_updates])
+            script.append(f'{prefix}conda update {pkgs} -y')
         if pypi_updates:
             script.append(
                 _('# The following packages can be updated through pip:'))
@@ -205,7 +251,8 @@ class Updater(BaseExtension):
                 script.append(
                     f'# - {info.pkg} from {info.current} to {info.latest}')
             pkgs = ' '.join([info.pkg for info in pypi_updates])
-            script.append(f'%pip install {pkgs} --upgrade --no-deps')
+            script.append(f'{prefix}pip install {pkgs} --upgrade --no-deps' +
+                          ' --pre' if cfg.updater_prereleases else '')
         self._update_script = '\n'.join(script)
         self.extension_manager.fire('notify',
                                     message=_('Some packages can be updated'))
@@ -226,6 +273,6 @@ class Updater(BaseExtension):
     def activate(self):
         self._show_updates()
 
-    @BaseExtension.as_thread(5000)
+    @BaseExtension.as_thread(DELAY)
     def event_startup(self):
         self._start_update_process()
