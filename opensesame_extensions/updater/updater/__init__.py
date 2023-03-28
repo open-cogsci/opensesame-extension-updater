@@ -14,4 +14,5 @@ toolbar = {
 settings = {
     'updater_prereleases': True
 }
+modes = ["ide", "default"]
 priority = -1000
