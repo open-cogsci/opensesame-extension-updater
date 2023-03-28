@@ -17,6 +17,7 @@ from libopensesame.py3compat import *
 from libopensesame.oslogging import oslogger
 from libqtopensesame.widgets.base_widget import BaseWidget
 from libqtopensesame.pyqode_extras.widgets import TextCodeEdit
+from pathlib import Path
 import os
 
 
@@ -26,7 +27,7 @@ class UpdateWidget(BaseWidget):
         super().__init__(parent, ui='extensions.updater.update_widget')
         self._editor = TextCodeEdit(parent)
         self.ui.vertical_layout.addWidget(self._editor)
-        if os.access(os.path.dirname(__file__), os.W_OK):
+        if self._has_write_access():
             self.ui.label_administrator.hide()
         else:
             self.ui.button_update.setEnabled(False)
@@ -39,3 +40,17 @@ class UpdateWidget(BaseWidget):
     def _run_script(self):
         self.extension_manager.fire('jupyter_run_code',
                                     code=self._editor.toPlainText())
+
+    def _has_write_access(self):
+        # On Windows, the only failsafe way to check if there are write
+        # permissions appears to be actually perform a write operation.
+        test_path = Path(__file__).parent / 'test.txt'
+        try:
+            test_path.write_text('test')
+        except PermissionError:
+            return False
+        try:
+            test_path.unlink()
+        except Exception:
+            pass
+        return True
