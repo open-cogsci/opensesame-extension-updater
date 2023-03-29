@@ -42,6 +42,11 @@ class UpdateWidget(BaseWidget):
                                     code=self._editor.toPlainText())
 
     def _has_write_access(self):
+        # We only check for write access on Windows, because on Mac OS the
+        # package has write access in itself, and on Linux there is write
+        # access to the user-packages folder.
+        if sys.platform != 'win32':
+            return True
         # On Windows, the only failsafe way to check if there are write
         # permissions appears to be actually perform a write operation.
         test_path = Path(__file__).parent / 'test.txt'
