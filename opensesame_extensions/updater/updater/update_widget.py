@@ -19,6 +19,7 @@ from libqtopensesame.widgets.base_widget import BaseWidget
 from libqtopensesame.pyqode_extras.widgets import TextCodeEdit
 from pathlib import Path
 import os
+import sys
 
 
 class UpdateWidget(BaseWidget):
