@@ -40,6 +40,32 @@ UpdateInfo = namedtuple('UpdateInfo', ['pkg', 'current', 'latest', 'pypi'])
 DELAY = 5000
 
 
+def _run(*cmd):
+    """Runs a system command and returns the output.
+    
+    Parameters
+    ----------
+    cmd : list
+        A list with the command and its parameters
+        
+    Returns
+    -------
+    None or dict
+        None if something went wrong or a dict with the json data
+    """
+    
+    # On Linux and Mac OS, the command needs to be concatenated into a single 
+    # command. This seems to be related to different ways of using the shell.
+    if sys.platform != 'win32':
+        cmd = [' '.join(cmd)]
+    result = subprocess.run(cmd, capture_output=True, shell=True)
+    if result.stdout:
+        try:
+            return json.loads(result.stdout)
+        except json.JSONDecodeError as e:
+            print(f'failed to parse conda output: {e}')
+
+
 def _has_conda():
     """Checks whether conda is available.
 
@@ -75,9 +101,9 @@ def _pkg_info_conda(pkg):
     tuple
         An info dict, version tuple
     """
-    cmd = [f'conda list {pkg} --full-name --json']
-    result = subprocess.run(cmd, capture_output=True, shell=True)
-    info = json.loads(result.stdout)
+    info = _run('conda', 'list', pkg, '--full-name', '--json')
+    if info is None:
+        return None, None
     if len(info) != 1:
         return None, None
     return info[0], parse(info[0]['version'])
@@ -96,9 +122,9 @@ def _pkg_info_pip(pkg):
     tuple
         An info dict, version tuple
     """
-    cmd = ['pip list --format=json --user']
-    result = subprocess.run(cmd, capture_output=True, shell=True)
-    pkg_list = json.loads(result.stdout)
+    pkg_list = _run('pip', 'list', '--format=json', '--user')
+    if pkg_list is None:
+        return None, None
     for info in pkg_list:
         if info['name'] == pkg:
             info['platform'] = 'pypi'
@@ -108,10 +134,10 @@ def _pkg_info_pip(pkg):
 
 def _check_conda(pkg):
     """Checks the latest version of a package on conda"""
-    cmd = [f'conda search {pkg} --info --json']
-    result = subprocess.run(cmd, capture_output=True, shell=True)
-    info = json.loads(result.stdout)
+    info = _run('conda', 'search', 'pkg', '--info --json')
     version = parse('0')
+    if info is None:
+        return version
     if pkg not in info:
         return version
     for release in info[pkg]:
