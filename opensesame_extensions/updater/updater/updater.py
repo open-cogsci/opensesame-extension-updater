@@ -132,9 +132,9 @@ def _pkg_info_pip(pkg):
     return None, None
 
 
-def _check_conda(pkg):
+def _check_conda(pkg, prereleases):
     """Checks the latest version of a package on conda"""
-    info = _run('conda', 'search', 'pkg', '--info --json')
+    info = _run('conda', 'search', pkg, '--info', '--json')
     version = parse('0')
     if info is None:
         return version
@@ -142,8 +142,9 @@ def _check_conda(pkg):
         return version
     for release in info[pkg]:
         ver = parse(release['version'])
-        if not ver.is_prerelease:
-            version = max(version, ver)
+        if ver.is_prerelease and not prereleases:
+            continue
+        version = max(version, ver)
     return version
 
 
@@ -167,12 +168,12 @@ def _check_update(pkg, pkg_info_fnc, prereleases):
     if yes, and None otherwise.
     """
     info, current = pkg_info_fnc(pkg)
-    print(pkg, info, current)
     if info is None:
         return
     pypi = info['platform'] == 'pypi'
-    latest = _check_pypi(pkg, prereleases) if pypi else _check_conda(pkg)
-    print(latest)
+    latest = _check_pypi(pkg, prereleases) if pypi \
+        else _check_conda(pkg, prereleases)
+    print(f'checking updates for {pkg}: platform={info["platform"]}, current={current}, latest={latest}')
     if latest <= current:
         return
     return UpdateInfo(pkg, current, latest, pypi)
