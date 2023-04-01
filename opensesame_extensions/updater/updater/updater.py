@@ -286,8 +286,12 @@ class Updater(BaseExtension):
         self.create_action()
         
     def create_action(self):
-        if self._widget is None and self._updates:
-            super().create_action()
+        if self._widget is not None or not self._updates:
+            return
+        super().create_action()
+        if 'OpensesameIde' not in self.extension_manager:
+            return
+        self.extension_manager['OpensesameIde']._toolbar.addAction(self.action)
 
     def _show_updates(self):
         if self._widget is None:
