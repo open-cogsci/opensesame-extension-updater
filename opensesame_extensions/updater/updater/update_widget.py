@@ -24,9 +24,10 @@ import sys
 
 class UpdateWidget(BaseWidget):
     
-    def __init__(self, parent):
+    def __init__(self, parent, updater):
         super().__init__(parent, ui='extensions.updater.update_widget')
         self._editor = TextCodeEdit(parent)
+        self._updater = updater
         self.ui.vertical_layout.addWidget(self._editor)
         if self._has_write_access():
             self.ui.label_administrator.hide()
@@ -41,6 +42,11 @@ class UpdateWidget(BaseWidget):
     def _run_script(self):
         self.extension_manager.fire('jupyter_run_code',
                                     code=self._editor.toPlainText())
+        self.extension_manager.fire(
+            'notify', message=_('Running update script'),
+            always_show=True)
+        self._updater.action.setVisible(False)
+        self.tabwidget.close_current()
 
     def _has_write_access(self):
         # We only check for write access on Windows, because on Mac OS the

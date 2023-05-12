@@ -281,8 +281,9 @@ class Updater(BaseExtension):
             script.append(f'{prefix}pip install {pkgs} --upgrade --no-deps' +
                           ' --pre' if cfg.updater_prereleases else '')
         self._update_script = '\n'.join(script)
-        self.extension_manager.fire('notify',
-                                    message=_('Some packages can be updated'))
+        self.extension_manager.fire(
+            'notify', message=_('Some packages can be updated'),
+            always_show=True, timeout=0)
         self.create_action()
         
     def create_action(self):
@@ -296,7 +297,7 @@ class Updater(BaseExtension):
     def _show_updates(self):
         if self._widget is None:
             from .update_widget import UpdateWidget
-            self._widget = UpdateWidget(self.main_window)
+            self._widget = UpdateWidget(self.main_window, self)
         self.tabwidget.add(self._widget, 'system-software-update',
                            _('Updates available'), switch=True)
         self._widget.set_script(self._update_script)
