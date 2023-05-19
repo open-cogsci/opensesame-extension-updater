@@ -134,7 +134,8 @@ def _pkg_info_pip(pkg):
 
 def _check_conda(pkg, prereleases):
     """Checks the latest version of a package on conda"""
-    info = _run('conda', 'search', pkg, '--info', '--json')
+    info = _run('conda', 'search', pkg, '--info', '--json',  '--channel',
+                'cogsci', '--channel', 'conda-forge')
     version = parse('0')
     if info is None:
         return version
@@ -270,7 +271,8 @@ class Updater(BaseExtension):
                 script.append(
                     f'# - {info.pkg} from {info.current} to {info.latest}')
             pkgs = ' '.join([info.pkg for info in conda_updates])
-            script.append(f'{prefix}conda update {pkgs} -y')
+            script.append(
+                f'{prefix}conda update {pkgs} -y -c cogsci -c conda-forge')
         if pypi_updates:
             script.append(
                 _('# The following packages can be updated through pip:'))
