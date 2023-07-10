@@ -300,8 +300,10 @@ class Updater(BaseExtension):
         if self._widget is None:
             from .update_widget import UpdateWidget
             self._widget = UpdateWidget(self.main_window, self)
-        self.tabwidget.add(self._widget, 'system-software-update',
-                           _('Updates available'), switch=True)
+        self.tabwidget.add(
+            self._widget, 'system-software-update',
+            _('Some packages can be updated. Click the updater icon in the toolbar to see available updates'),
+            switch=True)
         self._widget.set_script(self._update_script)
 
     def activate(self):
