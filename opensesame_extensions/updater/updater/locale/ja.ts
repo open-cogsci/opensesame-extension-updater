@@ -26,32 +26,32 @@
 <context>
     <name>extension_updater</name>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="3" />
+        <location filename="../../../../translation_tools/translatables.py" line="10" />
         <source>Updates available</source>
         <translation>利用可能な更新</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="4" />
+        <location filename="../../../../translation_tools/translatables.py" line="6" />
         <source>Some packages can be updated</source>
         <translation>一部のパッケージは更新できます</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="5" />
+        <location filename="../../../../translation_tools/translatables.py" line="3" />
         <source>Automatically checks for updates of selected packages</source>
         <translation>選択したパッケージの更新を自動的に確認します</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="6" />
+        <location filename="../../../../translation_tools/translatables.py" line="4" />
         <source># The following packages can be updated through conda:</source>
         <translation># 以下のパッケージはconda経由で更新できます：</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="7" />
+        <location filename="../../../../translation_tools/translatables.py" line="5" />
         <source># The following packages can be updated through pip:</source>
         <translation># 以下のパッケージはpip経由で更新できます：</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="8" />
+        <location filename="../../../../translation_tools/translatables.py" line="7" />
         <source>Some packages can be updated. Click the updater icon in the toolbar to see available updates</source>
         <translation>一部のパッケージは更新できます。利用可能なアップデートを確認するには、ツールバーのアップデーターアイコンをクリックしてください</translation>
     </message>
@@ -59,6 +59,11 @@
         <location filename="../../../../translation_tools/translatables.py" line="9" />
         <source>Click to see available updates</source>
         <translation>利用可能なアップデートを見るためにクリックしてください</translation>
+    </message>
+    <message>
+        <location filename="../../../../translation_tools/translatables.py" line="8" />
+        <source>Install updates …</source>
+        <translation>アップデートをインストール...</translation>
     </message>
 </context>
 </TS>

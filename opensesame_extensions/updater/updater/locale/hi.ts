@@ -26,32 +26,32 @@
 <context>
     <name>extension_updater</name>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="3" />
+        <location filename="../../../../translation_tools/translatables.py" line="10" />
         <source>Updates available</source>
         <translation>अपडेट उपलब्ध हैं</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="4" />
+        <location filename="../../../../translation_tools/translatables.py" line="6" />
         <source>Some packages can be updated</source>
         <translation>कुछ पैकेज अपडेट किए जा सकते हैं</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="5" />
+        <location filename="../../../../translation_tools/translatables.py" line="3" />
         <source>Automatically checks for updates of selected packages</source>
         <translation>चयनित पैकेजों के अपडेट की स्वचालित जांच करें</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="6" />
+        <location filename="../../../../translation_tools/translatables.py" line="4" />
         <source># The following packages can be updated through conda:</source>
         <translation># निम्नलिखित पैकेज को conda के माध्यम से अपडेट किया जा सकता है:</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="7" />
+        <location filename="../../../../translation_tools/translatables.py" line="5" />
         <source># The following packages can be updated through pip:</source>
         <translation># निम्नलिखित पैकेज को pip के माध्यम से अपडेट किया जा सकता है:</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="8" />
+        <location filename="../../../../translation_tools/translatables.py" line="7" />
         <source>Some packages can be updated. Click the updater icon in the toolbar to see available updates</source>
         <translation>कुछ पैकेज अपडेट किए जा सकते हैं। उपलब्ध अपडेट देखने के लिए टूलबार में अपडेटर आइकन पर क्लिक करें</translation>
     </message>
@@ -59,6 +59,11 @@
         <location filename="../../../../translation_tools/translatables.py" line="9" />
         <source>Click to see available updates</source>
         <translation>उपलब्ध अपडेट देखने के लिए क्लिक करें</translation>
+    </message>
+    <message>
+        <location filename="../../../../translation_tools/translatables.py" line="8" />
+        <source>Install updates …</source>
+        <translation>अपडेट स्थापित करें ...</translation>
     </message>
 </context>
 </TS>

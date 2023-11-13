@@ -26,32 +26,32 @@
 <context>
     <name>extension_updater</name>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="3" />
+        <location filename="../../../../translation_tools/translatables.py" line="10" />
         <source>Updates available</source>
         <translation>Updates beschikbaar</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="4" />
+        <location filename="../../../../translation_tools/translatables.py" line="6" />
         <source>Some packages can be updated</source>
         <translation>Sommige pakketten kunnen worden bijgewerkt</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="5" />
+        <location filename="../../../../translation_tools/translatables.py" line="3" />
         <source>Automatically checks for updates of selected packages</source>
         <translation>Controleert automatisch op updates van geselecteerde pakketten</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="6" />
+        <location filename="../../../../translation_tools/translatables.py" line="4" />
         <source># The following packages can be updated through conda:</source>
         <translation># De volgende pakketten kunnen via conda worden bijgewerkt:</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="7" />
+        <location filename="../../../../translation_tools/translatables.py" line="5" />
         <source># The following packages can be updated through pip:</source>
         <translation># De volgende pakketten kunnen via pip worden bijgewerkt:</translation>
     </message>
     <message>
-        <location filename="../../../../translation_tools/translatables.py" line="8" />
+        <location filename="../../../../translation_tools/translatables.py" line="7" />
         <source>Some packages can be updated. Click the updater icon in the toolbar to see available updates</source>
         <translation>Sommige pakketten kunnen worden bijgewerkt. Klik op het bijwerkikoon in de werkbalk om beschikbare updates te zien</translation>
     </message>
@@ -59,6 +59,11 @@
         <location filename="../../../../translation_tools/translatables.py" line="9" />
         <source>Click to see available updates</source>
         <translation>Klik om beschikbare updates te zien</translation>
+    </message>
+    <message>
+        <location filename="../../../../translation_tools/translatables.py" line="8" />
+        <source>Install updates …</source>
+        <translation>Installeer updates ..</translation>
     </message>
 </context>
 </TS>
