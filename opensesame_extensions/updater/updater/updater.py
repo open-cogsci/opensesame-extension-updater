@@ -27,7 +27,8 @@ import json
 import requests
 import json
 import sys
-from qtpy.QtCore import QTimer
+from qtpy.QtWidgets import QToolButton
+from qtpy.QtCore import QTimer, Qt
 try:
     from packaging.version import parse
 except ImportError:
@@ -292,10 +293,18 @@ class Updater(BaseExtension):
     def create_action(self):
         if self._widget is not None or not self._updates:
             return
-        super().create_action()
+        # We create a custom tool button so that we can show text next to the
+        # button without changing the toolbar style altogether
+        self.action = self.qaction(self.icon(), _('Install updates …'),
+                                   self._activate, tooltip=self.tooltip())
+        self.tool_button = QToolButton()
+        self.tool_button.setDefaultAction(self.action)
+        self.tool_button.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         if 'OpensesameIde' not in self.extension_manager:
+            self.main_toolbar.addWidget(self.tool_button)
             return
-        self.extension_manager['OpensesameIde']._toolbar.addAction(self.action)
+        self.extension_manager['OpensesameIde']._toolbar.addWidget(
+            self.tool_button)
 
     def _show_updates(self):
         if self._widget is None:
