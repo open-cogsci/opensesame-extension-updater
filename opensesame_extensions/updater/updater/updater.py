@@ -41,6 +41,15 @@ UpdateInfo = namedtuple('UpdateInfo', ['pkg', 'current', 'latest', 'pypi'])
 DELAY = 5000
 
 
+def _requires_break_system_packages():
+    """Determine if the --break-system-packages option is required for pip.
+    This is required on recent Ubuntu distributions.
+    """
+    result = subprocess.run(['pip install --help'], capture_output=True,
+                            text=True, shell=True)
+    return '--break-system-packages' in result.stdout
+
+
 def _run(*cmd):
     """Runs a system command and returns the output.
     
@@ -209,6 +218,7 @@ class Updater(BaseExtension):
         self._widget = None
         self._updates = []
         self._update_script = '# No updates available'
+        self._use_break_system_packages = _requires_break_system_packages()
         super().__init__(main_window, info)
     
     def _start_update_process(self):
@@ -282,6 +292,7 @@ class Updater(BaseExtension):
                     f'# - {info.pkg} from {info.current} to {info.latest}')
             pkgs = ' '.join([info.pkg for info in pypi_updates])
             script.append(f'{prefix}pip install {pkgs} --upgrade --no-deps' +
+                          ' --break-system-packages' if self._use_break_system_packages else '' +
                           ' --pre' if cfg.updater_prereleases else '')
         self._update_script = '\n'.join(script)
         self.extension_manager.fire(
