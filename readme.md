@@ -1,6 +1,6 @@
 # Updater extension for OpenSesame/ Rapunzel
 
-Copyright 2023 Sebastiaan Mathôt (@smathot)
+Copyright 2023-2025 Sebastiaan Mathôt (@smathot)
 
 
 ## About
