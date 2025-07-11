@@ -14,19 +14,19 @@ You should have received a copy of the GNU General Public License
 along with OpenSesame.  If not, see <http://www.gnu.org/licenses/>.
 """
 from libopensesame.py3compat import *
-from libopensesame.oslogging import oslogger
 from libqtopensesame.widgets.base_widget import BaseWidget
-from libqtopensesame.pyqode_extras.widgets import TextCodeEdit
+from pyqt_code_editor.code_editors import create_editor
+from libqtopensesame.misc.translate import translation_context
 from pathlib import Path
-import os
 import sys
+_ = translation_context('updater', category='extension')
 
 
 class UpdateWidget(BaseWidget):
     
     def __init__(self, parent, updater):
         super().__init__(parent, ui='extensions.updater.update_widget')
-        self._editor = TextCodeEdit(parent)
+        self._editor = create_editor(language='markdown', parent=self)
         self._updater = updater
         self.ui.vertical_layout.addWidget(self._editor)
         if self._has_write_access():
