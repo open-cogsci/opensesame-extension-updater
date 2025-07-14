@@ -13,19 +13,14 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with OpenSesame.  If not, see <http://www.gnu.org/licenses/>.
 """
-from libopensesame.py3compat import *
 from libopensesame.oslogging import oslogger
 from libqtopensesame.misc.config import cfg
 from libqtopensesame.extensions import BaseExtension
-import opensesame_extensions
 from collections import namedtuple
-import opensesame_plugins
-import pkgutil
 import multiprocessing
 import subprocess
 import json
 import requests
-import json
 import sys
 from qtpy.QtWidgets import QToolButton
 from qtpy.QtCore import QTimer, Qt
@@ -35,14 +30,18 @@ except ImportError:
     from pip._vendor.packaging.version import parse
 from libqtopensesame.misc.translate import translation_context
 _ = translation_context('updater', category='extension')
-MAX_OPENSESAME_VERSION = '4.0.99'
-MAX_OPENSESAME_TEXT = _('''OpenSesame 4.0 has reached end of life and will no
+MAX_OPENSESAME_VERSION = '4.1.99'
+MAX_OPENSESAME_TEXT = _('''OpenSesame 4.1 has reached end of life and will no
 longer receive updates.
 
 Please visit https://osdoc.cogsci.nl to download OpenSesame 4.1 or any later
 version.
 ''')
-
+USE_CONDA = False
+USE_PIP = True
+# When True, pass --user flag to pip list to get user installed packages. Since
+# we are typically running in a virtual env, this is not necessary.
+PIP_USER = False
 UpdateInfo = namedtuple('UpdateInfo', ['pkg', 'current', 'latest', 'pypi'])
 DELAY = 5000
 
@@ -89,6 +88,8 @@ def _has_conda():
     -------
     bool
     """
+    if not USE_CONDA:
+        return False
     result = subprocess.run(['conda'], capture_output=True, shell=True)
     return result.returncode == 0
 
@@ -100,6 +101,8 @@ def _has_pip():
     -------
     bool
     """
+    if not USE_PIP:
+        return False
     result = subprocess.run(['pip'], capture_output=True, shell=True)
     return result.returncode == 0
 
@@ -138,7 +141,10 @@ def _pkg_info_pip(pkg):
     tuple
         An info dict, version tuple
     """
-    pkg_list = _run('pip', 'list', '--format=json', '--user')
+    cmd = 'pip list --format=json'
+    if PIP_USER:
+        cmd += ' --user'
+    pkg_list = _run(*cmd.split())
     if pkg_list is None:
         return None, None
     for info in pkg_list:
@@ -186,6 +192,7 @@ def _check_update(pkg, pkg_info_fnc, prereleases):
     """
     info, current = pkg_info_fnc(pkg)
     if info is None:
+        print(f'checking updates for {pkg}: no package info')
         return
     pypi = info['platform'] == 'pypi'
     latest = _check_pypi(pkg, prereleases) if pypi \
@@ -210,7 +217,6 @@ def _check_updates(queue, pkgs, prereleases):
         print('neither conda nor pip are available for updater')
         queue.put(None)
         return
-    available_updates = []
     for pkg in pkgs:
         info = _check_update(pkg, pkg_info_fnc, prereleases)
         if info is not None:
