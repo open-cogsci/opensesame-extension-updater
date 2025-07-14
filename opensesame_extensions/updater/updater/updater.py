@@ -35,7 +35,13 @@ except ImportError:
     from pip._vendor.packaging.version import parse
 from libqtopensesame.misc.translate import translation_context
 _ = translation_context('updater', category='extension')
+MAX_OPENSESAME_VERSION = '4.0.99'
+MAX_OPENSESAME_TEXT = _('''OpenSesame 4.0 has reached end of life and will no
+longer receive updates.
 
+Please visit https://osdoc.cogsci.nl to download OpenSesame 4.1 or any later
+version.
+''')
 
 UpdateInfo = namedtuple('UpdateInfo', ['pkg', 'current', 'latest', 'pypi'])
 DELAY = 5000
@@ -271,30 +277,40 @@ class Updater(BaseExtension):
         if not self._updates:
             oslogger.debug('no updates available')
             return
-        prefix = '!'
-        script = []
-        pypi_updates = [info for info in self._updates if info.pypi]
-        conda_updates = [info for info in self._updates if not info.pypi]
-        if conda_updates:
-            script.append(
-                _('# The following packages can be updated through conda:'))
-            for info in conda_updates:
+        # If OpenSesame has been updated to a version outside of the current
+        # series, do not offer to update packages, but rather ask the user to
+        # manually update to the next series.
+        for info in self._updates:
+            if info.pkg.lower() not in ('opensesame', 'opensesame-core'):
+                continue
+            if info.latest > parse(MAX_OPENSESAME_VERSION):
+                self._update_script = MAX_OPENSESAME_TEXT
+                break
+        else:        
+            prefix = '!'
+            script = []
+            pypi_updates = [info for info in self._updates if info.pypi]
+            conda_updates = [info for info in self._updates if not info.pypi]
+            if conda_updates:
                 script.append(
-                    f'# - {info.pkg} from {info.current} to {info.latest}')
-            pkgs = ' '.join([info.pkg for info in conda_updates])
-            script.append(
-                f'{prefix}conda update {pkgs} -y -c cogsci -c conda-forge')
-        if pypi_updates:
-            script.append(
-                _('# The following packages can be updated through pip:'))
-            for info in pypi_updates:
+                    _('# The following packages can be updated through conda:'))
+                for info in conda_updates:
+                    script.append(
+                        f'# - {info.pkg} from {info.current} to {info.latest}')
+                pkgs = ' '.join([info.pkg for info in conda_updates])
                 script.append(
-                    f'# - {info.pkg} from {info.current} to {info.latest}')
-            pkgs = ' '.join([info.pkg for info in pypi_updates])
-            script.append(f'{prefix}pip install {pkgs} --upgrade --no-deps' +
-                          ' --break-system-packages' if self._use_break_system_packages else '' +
-                          ' --pre' if cfg.updater_prereleases else '')
-        self._update_script = '\n'.join(script)
+                    f'{prefix}conda update {pkgs} -y -c cogsci -c conda-forge')
+            if pypi_updates:
+                script.append(
+                    _('# The following packages can be updated through pip:'))
+                for info in pypi_updates:
+                    script.append(
+                        f'# - {info.pkg} from {info.current} to {info.latest}')
+                pkgs = ' '.join([info.pkg for info in pypi_updates])
+                script.append(f'{prefix}pip install {pkgs} --upgrade --no-deps' +
+                              ' --break-system-packages' if self._use_break_system_packages else '' +
+                              ' --pre' if cfg.updater_prereleases else '')
+            self._update_script = '\n'.join(script)
         self.extension_manager.fire(
             'notify',
             message=_('Some packages can be updated. Click the updater icon in the toolbar to see available updates'),
