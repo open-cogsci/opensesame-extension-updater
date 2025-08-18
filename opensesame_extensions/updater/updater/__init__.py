@@ -12,7 +12,7 @@ toolbar = {
     "separator_after": False
 }
 settings = {
-    'updater_prereleases': True
+    'updater_prereleases': False
 }
 modes = ["ide", "default"]
 priority = -1000
