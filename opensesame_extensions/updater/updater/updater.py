@@ -313,14 +313,14 @@ class Updater(BaseExtension):
                     script.append(
                         f'# - {info.pkg} from {info.current} to {info.latest}')
                 pkgs = ' '.join([info.pkg for info in pypi_updates])
-                script.append(f'{prefix}pip install {pkgs} --upgrade --no-deps' +
+                script.append(f'{prefix}pip install {pkgs} --upgrade --upgrade-strategy only-if-needed' +
                               (' --break-system-packages' if self._use_break_system_packages else '') +
                               (' --pre' if cfg.updater_prereleases else ''))
             self._update_script = '\n'.join(script)
         self.extension_manager.fire(
             'notify',
             message=_('Some packages can be updated. Click the updater icon in the toolbar to see available updates'),
-            always_show=True, timeout=0)
+            always_show=True, timeout=10000)
         self.create_action()
         
     def create_action(self):
