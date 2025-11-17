@@ -313,7 +313,7 @@ class Updater(BaseExtension):
                     script.append(
                         f'# - {info.pkg} from {info.current} to {info.latest}')
                 pkgs = ' '.join([info.pkg for info in pypi_updates])
-                script.append(f'{prefix}pip install {pkgs} --upgrade --upgrade-strategy only-if-needed' +
+                script.append(f'{prefix}pip install {pkgs} --upgrade --no-cache-dir --upgrade-strategy only-if-needed' +
                               (' --break-system-packages' if self._use_break_system_packages else '') +
                               (' --pre' if cfg.updater_prereleases else ''))
             self._update_script = '\n'.join(script)
