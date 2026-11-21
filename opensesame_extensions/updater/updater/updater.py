@@ -148,7 +148,7 @@ def _pkg_info_pip(pkg):
     if pkg_list is None:
         return None, None
     for info in pkg_list:
-        if info['name'] == pkg:
+        if info['name'].replace('_', '-') == pkg.replace('_', '-'):
             info['platform'] = 'pypi'
             return info, parse(info['version'])
     return None, None
